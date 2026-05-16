@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import sqlite3
+import os
 from datetime import datetime
 
 from aiogram import Bot, Dispatcher, F
@@ -11,9 +12,8 @@ from aiogram.fsm.state import State, StatesGroup
 from aiocryptopay import AioCryptoPay, Networks
 
 # ================= НАСТРОЙКИ =================
-BOT_TOKEN = "8575793456:AAHsBAadhTUtqpKJ8y1nUh581KsD2-F-1vM"
-CRYPTO_TOKEN = "582564:AAoc74UICvR25vnbobMEFVGg1n8xz8TJhhY"
-
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+CRYPTO_TOKEN = os.getenv("CRYPTO_TOKEN")
 CHANNEL_ID = -1003982895940
 BASE_PRICE = 5  # ~115 Kč, чтобы чистыми выходило 100 крон
 

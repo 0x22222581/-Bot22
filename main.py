@@ -95,8 +95,9 @@ async def start(message: Message, state: FSMContext):
         "bezplatného kanálu. Tam podrobně mluvím o umělé inteligenci, sdílím tajemství automatizace "
         "a ukazuji, jak přesně neuronové sítě pomáhají vydělávat reálné peníze! 💰🚀\n\n"
         "Klikni na tlačítko níže 👇, prostuduj si informace, a až budeš připraven připojit se "
-        "k privátnímu kurzu — jednoduše mi napiš příkaz /pay nebo klikni na druhé tlačítko přímo zde."
+        "k privátnímu kurzu — jednoduše mi napiš příkaz <b>/pay</b> nebo klikni na druhé tlačítko přímo zde."
     )
+    # Здесь мы сменили Markdown на HTML, теперь тормозить не будет!
     await message.answer(text, reply_markup=get_start_kb(), parse_mode="HTML")
 
 @dp.callback_query(F.data == "go_to_pay")

@@ -15,7 +15,7 @@ from aiocryptopay import AioCryptoPay, Networks
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CRYPTO_TOKEN = os.getenv("CRYPTO_TOKEN")
 CHANNEL_ID = -1003982895940
-BASE_PRICE = 0.1  # ~115 Kč, чтобы чистыми выходило 100 крон
+BASE_PRICE = 5  # ~115 Kč, чтобы чистыми выходило 100 крон
 
 # ================= СОСТОЯНИЯ ДЛЯ СВОЕЙ СУММЫ =================
 

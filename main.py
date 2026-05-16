@@ -3,6 +3,7 @@ import logging
 import sqlite3
 import os
 from datetime import datetime
+from aiohttp import web  # Добавлено для работы на Render Web Service
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
@@ -12,10 +13,9 @@ from aiogram.fsm.state import State, StatesGroup
 from aiocryptopay import AioCryptoPay, Networks
 
 # ================= НАСТРОЙКИ =================
-# Убедись, что эти переменные добавлены в Render (Environment Variables)
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CRYPTO_TOKEN = os.getenv("CRYPTO_TOKEN")
-CHANNEL_ID = -1003982895940
+CHANNEL_ID = -1003982895940  # Проверь, правильный ли ID
 BASE_PRICE = 5
 
 # ================= СОСТОЯНИЯ =================
@@ -54,7 +54,6 @@ def log_sale(username, user_id, total_sum, tip):
 
 # ================= ИНИЦИАЛИЗАЦИЯ =================
 logging.basicConfig(level=logging.INFO)
-# Добавляем проверку на наличие токена
 if not BOT_TOKEN:
     raise ValueError("ОШИБКА: BOT_TOKEN не найден в переменных окружения!")
 
@@ -97,7 +96,6 @@ async def start(message: Message, state: FSMContext):
         "Klikni na tlačítko níže 👇, prostuduj si informace, a až budeš připraven připojit se "
         "k privátnímu kurzu — jednoduše mi napiš příkaz <b>/pay</b> nebo klikni na druhé tlačítko přímo zde."
     )
-    # Здесь мы сменили Markdown на HTML, теперь тормозить не будет!
     await message.answer(text, reply_markup=get_start_kb(), parse_mode="HTML")
 
 @dp.callback_query(F.data == "go_to_pay")
@@ -110,8 +108,6 @@ async def go_to_pay_callback(callback: CallbackQuery, state: FSMContext):
         parse_mode="HTML"
     )
     await callback.answer()
-
-# ... (остальные обработчики pay_cmd, pay_custom_cmd и т.д. остаются такими же, только проверь отступы)
 
 @dp.message(Command("pay"))
 async def pay_cmd(message: Message, state: FSMContext):
@@ -185,17 +181,37 @@ async def check_invoice_handler(callback: CallbackQuery):
             )
         except Exception as e:
             logging.error(f"Link Error: {e}")
-            await bot.send_message(user.id, f"Chyba při odesílání odkazu: {e}")
+            await bot.send_message(user.id, f"Chyba při odesílání odkazu. Проверь права бота в канале. Ошибка: {e}")
     else:
         await callback.answer("❌ Platba zatím neprošla.", show_alert=True)
+
+# ================= DUMMY WEB SERVER ДЛЯ RENDER =================
+async def handle_ping(request):
+    return web.Response(text="Bot is running!")
+
+async def start_dummy_server():
+    app = web.Application()
+    app.router.add_get('/', handle_ping)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    # Render передает свой порт через переменную окружения PORT
+    port = int(os.environ.get("PORT", 10000))
+    site = web.TCPSite(runner, '0.0.0.0', port)
+    await site.start()
+    logging.info(f"Запущен веб-сервер заглушка на порту {port}")
 
 # ================= ЗАПУСК =================
 async def main():
     global crypto
     crypto = AioCryptoPay(token=CRYPTO_TOKEN, network=Networks.MAIN_NET)
     init_db()
+    
+    # Запускаем заглушку, чтобы Render нас не убил
+    await start_dummy_server()
+
     print("Bot je spuštěn! 🚀")
     try:
+        # Запускаем самого бота
         await dp.start_polling(bot)
     finally:
         await crypto.close()
